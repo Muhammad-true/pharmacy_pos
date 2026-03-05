@@ -22,76 +22,180 @@
 
 ## 📋 Требования
 
-- Flutter SDK 3.9.2 или выше
-- Dart 3.9.2 или выше
+- **Flutter SDK 3.9.2** или выше (рекомендуется стабильная ветка)
+- **Dart 3.9.2** или выше
+- **MySQL 5.7+** или 8.x (сервер должен быть запущен)
 - Windows 10/11 (для десктопной версии)
-- SQLite (встроен)
 
-## 🔧 Установка
+---
 
-### 1. Клонирование репозитория
+## 👥 Инструкция для разработчиков (быстрый старт)
+
+Чтобы другой разработчик мог склонировать проект, настроить MySQL, подтянуть зависимости и запустить приложение без лишних усилий — следуйте шагам ниже.
+
+### 1. Git: клонирование и работа с репозиторием
+
+**Клонирование (для новых разработчиков):**
 ```bash
-git clone <repository-url>
+git clone <URL-репозитория>
 cd dorukhonai_man
 ```
 
-### 2. Установка зависимостей
+**Проверка версии Flutter (желательно совпадать с проектом):**
 ```bash
-flutter pub get
+flutter --version
+# Ожидается: Flutter 3.9.2 или выше, Dart 3.9.2+
 ```
 
-### 3. Настройка базы данных
+**Ежедневная работа (получить последние изменения, отправить свои):**
+```bash
+# Получить изменения с удалённого репозитория
+git pull origin main
 
-Создайте файл `.env` в корне проекта:
+# После правок — добавить файлы, закоммитить, отправить
+git add .
+git commit -m "Описание изменений"
+git push origin main
+```
+
+Если вы работаете в отдельной ветке:
+```bash
+git checkout -b feature/название-фичи
+# ... правки ...
+git add .
+git commit -m "Описание"
+git push origin feature/название-фичи
+```
+
+> **Важно:** Файл `.env` с паролями и секретами в репозиторий не коммитить. Используйте `.env.example` как шаблон.
+
+---
+
+### 2. MySQL: создание базы и импорт схемы/дампа
+
+Приложение использует **MySQL**. Нужно создать базу и импортировать структуру таблиц (и при необходимости данные).
+
+**Вариант А — пустая схема (только таблицы):**
+
+1. Запустите MySQL (локально или сервер).
+2. Создайте базу и пользователя (в консоли MySQL или phpMyAdmin):
+   ```sql
+   CREATE DATABASE pharmacy_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   CREATE USER 'pharmacy_user'@'localhost' IDENTIFIED BY 'ваш_пароль';
+   GRANT ALL PRIVILEGES ON pharmacy_db.* TO 'pharmacy_user'@'localhost';
+   FLUSH PRIVILEGES;
+   ```
+3. Импортируйте файл схемы из корня проекта:
+   ```bash
+   mysql -u pharmacy_user -p pharmacy_db < create_mysql_tables.sql
+   ```
+   Или в Windows (cmd):
+   ```cmd
+   mysql -u pharmacy_user -p pharmacy_db < create_mysql_tables.sql
+   ```
+
+**Вариант Б — импорт дампа с данными (например, Dump20260305):**
+
+Если вам выдали готовый дамп (файл вида `Dump20260305.sql` или `Dump20260305 (1).sql`):
+
+1. Создайте базу (если ещё не создана):
+   ```sql
+   CREATE DATABASE pharmacy_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   ```
+2. Импортируйте дамп:
+   ```bash
+   mysql -u pharmacy_user -p pharmacy_db < "Dump20260305 (1).sql"
+   ```
+   В Windows путь к файлу укажите в кавычках, если в имени есть пробелы или скобки.
+
+После импорта в БД должны появиться таблицы: `users`, `products`, `receipts`, `clients` и др. (см. `create_mysql_tables.sql`).
+
+---
+
+### 3. Настройка окружения (.env)
+
+В корне проекта создайте файл `.env` (он не коммитится в Git). Можно скопировать шаблон:
+
+```bash
+copy .env.example .env
+```
+
+Откройте `.env` и укажите свои данные MySQL:
 
 ```env
-# Путь к базе данных
-# Для локальной БД:
-DATABASE_PATH=./data/dorukhonai.db
-
-# Для общей БД на сервере (для нескольких касс):
-# DATABASE_PATH=\\SERVER\Shared\PharmacyDB\dorukhonai.db
-
-# Настройки приложения
-APP_NAME=Аптека Хушдил - POS
+DATABASE_TYPE=mysql
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=pharmacy_user
+MYSQL_PASSWORD=ваш_пароль
+MYSQL_DATABASE=pharmacy_db
+MYSQL_SSL_ENABLED=false
 APP_VERSION=1.0.0
-LOG_LEVEL=info
-CASHIER_NAME=Касса 1
-ENVIRONMENT=production
+UPDATE_URL=
 ```
 
-### 4. Генерация кода
+Подставьте реальные `MYSQL_USER`, `MYSQL_PASSWORD` и при необходимости `MYSQL_HOST` (если БД на другом компьютере).
+
+---
+
+### 4. Зависимости Flutter и генерация кода
+
+В корне проекта выполните:
+
 ```bash
+flutter pub get
 flutter pub run build_runner build --delete-conflicting-outputs
 ```
 
+Это установит пакеты из `pubspec.yaml` и сгенерирует код для Drift/Riverpod. Без этого шага приложение может не собраться.
+
+---
+
 ### 5. Запуск приложения
+
+```bash
+flutter run -d windows
+```
+
+Первый вход: логин `admin`, пароль `admin` — **обязательно смените после первого входа.**
+
+---
+
+### Краткий чек-лист «с нуля»
+
+| Шаг | Действие |
+|-----|----------|
+| 1 | `git clone <url>` и `cd dorukhonai_man` |
+| 2 | Установить Flutter 3.9.2+ и MySQL |
+| 3 | Создать БД `pharmacy_db`, импорт `create_mysql_tables.sql` или дампа (например `Dump20260305 (1).sql`) |
+| 4 | Скопировать `.env.example` в `.env`, заполнить MySQL и при необходимости другие переменные |
+| 5 | `flutter pub get` и `flutter pub run build_runner build --delete-conflicting-outputs` |
+| 6 | `flutter run -d windows` |
+
+---
+
+## 🔧 Установка (кратко)
+
+### Клонирование и зависимости
+```bash
+git clone <repository-url>
+cd dorukhonai_man
+flutter pub get
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+
+### База данных
+- MySQL: создайте БД, импортируйте `create_mysql_tables.sql` или готовый дамп (см. раздел «MySQL» выше).
+- Создайте `.env` из `.env.example` и укажите параметры MySQL.
+
+### Запуск
 ```bash
 flutter run -d windows
 ```
 
 ## 📖 Настройка для нескольких касс
 
-Для работы нескольких касс с одной базой данных:
-
-1. **Разместите БД на сервере:**
-   - Создайте общую папку: `\\SERVER\Shared\PharmacyDB\`
-   - Скопируйте туда файл `dorukhonai.db`
-   - Настройте права доступа (чтение/запись для всех касс)
-
-2. **Настройте каждую кассу:**
-   - В файле `.env` укажите путь к общей БД:
-   ```env
-   DATABASE_PATH=\\SERVER\Shared\PharmacyDB\dorukhonai.db
-   CASHIER_NAME=Касса 1  # Уникальное имя для каждой кассы
-   ```
-
-3. **Важно:**
-   - Используйте стабильное сетевое соединение
-   - Рекомендуется максимум 5-10 одновременных подключений
-   - Регулярно делайте резервные копии БД
-
-Подробнее см. [DATABASE_SETUP.md](DATABASE_SETUP.md)
+При использовании **MySQL** все кассы подключаются к одному серверу БД. В `.env` на каждой кассе укажите один и тот же `MYSQL_HOST` (адрес сервера), `MYSQL_DATABASE`, и при необходимости разные имена касс в настройках приложения.
 
 ## 👤 Первый запуск
 
