@@ -66,19 +66,6 @@ class _AddProductSheetState extends ConsumerState<AddProductSheet> {
       DraggableScrollableController();
 
   // Сохраняем исходные значения перед автозаполнением
-  String? _originalCode;
-  String? _originalShelf;
-  String? _originalQuantity;
-  String? _originalUnits;
-  String? _originalCost;
-  String? _originalPrice;
-  String? _originalQrCode;
-  String? _originalComposition;
-  String? _originalIndications;
-  String? _originalPreparationMethod;
-  bool? _originalRequiresPrescription;
-  Manufacturer? _originalManufacturer;
-  String? _originalOrganization;
 
   bool get _isAddingNewManufacturer => _selectedManufacturer == null;
   bool get _isAddingNewOrganization =>
@@ -555,19 +542,6 @@ class _AddProductSheetState extends ConsumerState<AddProductSheet> {
     });
 
     // Очищаем сохраненные исходные значения
-    _originalCode = null;
-    _originalShelf = null;
-    _originalQuantity = null;
-    _originalUnits = null;
-    _originalCost = null;
-    _originalPrice = null;
-    _originalQrCode = null;
-    _originalComposition = null;
-    _originalIndications = null;
-    _originalPreparationMethod = null;
-    _originalRequiresPrescription = null;
-    _originalManufacturer = null;
-    _originalOrganization = null;
 
     // Возвращаем слушатели с задержкой, чтобы не запустить поиск сразу
     // Используем WidgetsBinding для гарантии, что все обновления UI завершены
@@ -597,19 +571,6 @@ class _AddProductSheetState extends ConsumerState<AddProductSheet> {
     _barcodeController.removeListener(_onNameOrBarcodeChanged);
 
     // Сохраняем исходные значения перед автозаполнением
-    _originalCode = _codeController.text;
-    _originalShelf = _shelfController.text;
-    _originalQuantity = _quantityController.text;
-    _originalUnits = _unitsController.text;
-    _originalCost = _costController.text;
-    _originalPrice = _priceController.text;
-    _originalQrCode = _qrCodeController.text;
-    _originalComposition = _compositionController.text;
-    _originalIndications = _indicationsController.text;
-    _originalPreparationMethod = _preparationMethodController.text;
-    _originalRequiresPrescription = _requiresPrescription;
-    _originalManufacturer = _selectedManufacturer;
-    _originalOrganization = _selectedOrganization;
 
     // Заполняем основные поля
     // Используем прямое присваивание текста
